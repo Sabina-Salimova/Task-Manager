@@ -1,1 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Task Manager</title>
+
+  <!-- ──────────────────────────────────────────────────────────────────────────
+       1. Google Fonts
+       ────────────────────────────────────────────────────────────────────────── -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- ──────────────────────────────────────────────────────────────────────────
+       2. Stylesheet
+       ────────────────────────────────────────────────────────────────────────── -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app-container">
+
+    <!-- ──────────────────────────────────────────────────────────────────────────
+         3. Header
+         ────────────────────────────────────────────────────────────────────────── -->
+    <header class="app-header">
+      <h1>Task Manager</h1>
+    </header>
+
+    <!-- ──────────────────────────────────────────────────────────────────────────
+         4. Create New Task Section
+         ────────────────────────────────────────────────────────────────────────── -->
+    <section class="create-section">
+      <form id="new-task-form" class="create-form">
+        <!-- Title Input Group -->
+        <div class="input-group">
+          <input
+            type="text"
+            id="task-title"
+            placeholder=" "
+            required
+          />
+          <label for="task-title" class="floating-label">Task title</label>
+        </div>
+
+        <!-- Description Input Group -->
+        <div class="input-group">
+          <input
+            type="text"
+            id="task-desc"
+            placeholder=" "
+          />
+          <label for="task-desc" class="floating-label">
+            Description (optional)
+          </label>
+        </div>
+
+        <!-- Add Task Button -->
+        <button type="submit" class="btn btn-add">
+          <span class="btn-icon">＋</span>
+          <span>Add Task</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- ──────────────────────────────────────────────────────────────────────────
+         5. Filter Buttons Section
+         ────────────────────────────────────────────────────────────────────────── -->
+    <section class="filter-section">
+      <button data-filter="all" class="filter-btn active">All</button>
+      <button data-filter="active" class="filter-btn">Active</button>
+      <button data-filter="completed" class="filter-btn">Done</button>
+    </section>
+
+    <!-- ──────────────────────────────────────────────────────────────────────────
+         6. Task List Section
+         ────────────────────────────────────────────────────────────────────────── -->
+    <section class="list-section">
+      <ul id="task-list" class="task-list"></ul>
+    </section>
+
+    <!-- ──────────────────────────────────────────────────────────────────────────
+         7. Edit Task Modal Overlay
+         ────────────────────────────────────────────────────────────────────────── -->
+    <div id="edit-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <h2>Edit Task</h2>
+        <form id="edit-task-form" class="modal-form">
+          <!-- Edit Title Input Group -->
+          <div class="input-group">
+            <input
+              type="text"
+              id="edit-task-title"
+              placeholder=" "
+              required
+            />
+            <label for="edit-task-title" class="floating-label">
+              Task title
+            </label>
+          </div>
+
+          <!-- Edit Description Input Group -->
+          <div class="input-group">
+            <input
+              type="text"
+              id="edit-task-desc"
+              placeholder=" "
+            />
+            <label for="edit-task-desc" class="floating-label">
+              Description (optional)
+            </label>
+          </div>
+
+          <!-- Modal Action Buttons -->
+          <div class="modal-actions">
+            <button type="submit" class="btn btn-save">
+              <span class="btn-icon">✔</span>
+              <span>Save</span>
+            </button>
+            <button type="button" id="cancel-edit" class="btn btn-cancel">
+              <span class="btn-icon">✖</span>
+              <span>Cancel</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────────────────────────────────────────
+       8. Main JavaScript (ES Module)
+       ────────────────────────────────────────────────────────────────────────── -->
+  <script type="module" src="main.js"></script>
+</body>
+
+</html>
 
