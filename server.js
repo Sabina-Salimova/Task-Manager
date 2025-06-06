@@ -1,24 +1,24 @@
-// Load environment variables from a .env file into process.env
+// server.js
 require('dotenv').config();
 
-const express = require('express');                 // Import Express framework
-const mongoose = require('mongoose');               // Import Mongoose for MongoDB interaction
-const path = require('path');                       // Import Node.js path module for file path utilities
+const express = require('express');
+const mongoose = require('mongoose');
+const path = require('path');
 
-const Task = require('./models/Task');              // Import the Task model defined in models/Task.js
-const app = express();                              // Create an Express application
+const Task = require('./models/Task');
+const app = express();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Middleware
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Serve static files (HTML, CSS, JS) from the "client" directory
-app.use(express.static(path.join(__dirname, 'client')));
+// Serve static files from the "Client" directory
+app.use(express.static(path.join(__dirname, 'Client')));
 
-// Parse incoming JSON requests (e.g., from POST/PUT)
+// Parse incoming JSON bodies
 app.use(express.json());
 
-// A wrapper to handle async errors in route handlers
+// A helper to wrap async route handlers and forward errors
 const wrap = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
@@ -27,78 +27,74 @@ const wrap = (fn) => (req, res, next) => {
 // Routes
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Serve the index.html file when user accesses the root path
+// Serve the main HTML file
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'Client', 'index.html'));
 });
 
 // Create a new task
 app.post(
   '/api/tasks',
   wrap(async (req, res) => {
-    const { title, description } = req.body;              // Extract title and description from request body
+    const { title, description } = req.body;
 
-    // Ensure title is present and not just whitespace
+    // Basic validation
     if (!title || title.trim() === '') {
       return res.status(400).json({ error: 'Title is required' });
     }
 
-    // Create a new Task instance with trimmed title and description
+    // Create and save the new task
     const newTask = new Task({
       title: title.trim(),
       description: (description || '').trim(),
     });
 
-    // Save the task to the database
     const savedTask = await newTask.save();
-    res.status(201).json(savedTask);                      // Return the created task with 201 status
+    res.status(201).json(savedTask);
   })
 );
 
-// Retrieve all tasks (optionally filter by `completed` status)
+// Get all tasks (optionally filtered by completion)
 app.get(
   '/api/tasks',
   wrap(async (req, res) => {
-    const { completed } = req.query;       // Extract optional query parameter
-    const filter = {};                     // Prepare a filter object
+    const { completed } = req.query;
+    const filter = {};
 
-    // Apply filter based on query parameter
     if (completed === 'true') {
       filter.completed = true;
     } else if (completed === 'false') {
       filter.completed = false;
     }
 
-    // Retrieve tasks from DB, sorted by creation time (newest first)
     const tasks = await Task.find(filter).sort({ createdAt: -1 });
-    res.json(tasks);                       // Send tasks as JSON response
+    res.json(tasks);
   })
 );
 
-// Retrieve a single task by its ID
+// Get a single task by ID
 app.get(
   '/api/tasks/:id',
   wrap(async (req, res) => {
-    const { id } = req.params;                      // Extract task ID from URL
-    const task = await Task.findById(id);           // Search DB by ID
+    const { id } = req.params;
+    const task = await Task.findById(id);
 
     if (!task) {
-      return res.status(404).json({ error: 'Task not found' });  // Not found
+      return res.status(404).json({ error: 'Task not found' });
     }
 
-    res.json(task);                                 // Send found task
+    res.json(task);
   })
 );
 
-// Update a task by its ID
+// Update a task by ID
 app.put(
   '/api/tasks/:id',
   wrap(async (req, res) => {
-    const { id } = req.params;                               // Extract task ID
-    const { title, description, completed } = req.body;      // Extract fields to update
-    const updates = {};                                      // Prepare update object
+    const { id } = req.params;
+    const { title, description, completed } = req.body;
+    const updates = {};
 
-    // If title is provided, validate and add to updates
     if (title !== undefined) {
       if (title.trim() === '') {
         return res.status(400).json({ error: 'Title cannot be empty' });
@@ -106,41 +102,38 @@ app.put(
       updates.title = title.trim();
     }
 
-    // If description is provided, trim and update
     if (description !== undefined) {
       updates.description = description.trim();
     }
 
-    // If completed is provided, update
     if (completed !== undefined) {
       updates.completed = completed;
     }
 
-    // Find task by ID and apply updates, returning the updated doc
     const updatedTask = await Task.findByIdAndUpdate(id, updates, {
-      new: true,  // Return the new document after update
+      new: true,
     });
 
     if (!updatedTask) {
       return res.status(404).json({ error: 'Task not found' });
     }
 
-    res.json(updatedTask);                            // Return updated task
+    res.json(updatedTask);
   })
 );
 
-// Delete a task by its ID
+// Delete a task by ID
 app.delete(
   '/api/tasks/:id',
   wrap(async (req, res) => {
-    const { id } = req.params;                      // Extract ID
-    const deleted = await Task.findByIdAndDelete(id);  // Delete from DB
+    const { id } = req.params;
+    const deleted = await Task.findByIdAndDelete(id);
 
     if (!deleted) {
       return res.status(404).json({ error: 'Task not found' });
     }
 
-    res.json({ message: 'Deleted successfully' });   // Return success message
+    res.json({ message: 'Deleted successfully' });
   })
 );
 
@@ -148,26 +141,32 @@ app.delete(
 // Error-handling Middleware
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Catch and log errors from async routes, send generic error response
+// Catches errors thrown by wrapped async routes
 app.use((err, req, res, next) => {
-  console.error(err);                               // Log full error stack
+  console.error(err);
   res.status(500).json({ error: 'An unexpected error occurred' });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Database Connection & Server Startup
+// Database Connection & Server Startup (Atlas-only)
 // ─────────────────────────────────────────────────────────────────────────────
 
-mongoose
-  .connect(process.env.MONGO_URI)                    // Connect to MongoDB Atlas using connection string from .env
-  .then(() => {
+(async () => {
+  try {
+    // Expect MONGO_URI in .env, pointing to Atlas cluster
+    const mongoUri = process.env.MONGO_URI;
+    if (!mongoUri) {
+      throw new Error('MONGO_URI not defined in .env');
+    }
+
+    await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB Atlas');
 
-    const PORT = process.env.PORT || 3000;           // Use .env port or default to 3000
+    const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`Server listening on port ${PORT}`); // Start server and log port
+      console.log(`Server listening on port ${PORT}`);
     });
-  })
-  .catch((err) => {
-    console.error('Failed to connect to MongoDB', err);  // Log connection error
-  });
+  } catch (err) {
+    console.error('Failed to connect to MongoDB', err);
+  }
+})();
