@@ -1,4 +1,4 @@
-// public/main.js
+// public/app.js
 
 import Http from './http.js';
 
